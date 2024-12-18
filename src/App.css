@@ -1,0 +1,45 @@
+#root {
+  padding: 0;
+  width: 100%;
+}
+
+.head {
+  height: 100vh;
+  border: 1px solid blue;
+}
+
+.footer {
+  height: 100vh;
+  border: 1px solid blue;
+}
+
+.middle {
+  height: 150vh;
+}
+
+.small {
+  height: 150vh;
+  height: 100vh;
+}
+
+.container {
+  width: 50%;
+  height: 80vh;
+  position: relative;
+  margin: 0 auto;
+  border: 1px solid blue;
+}
+
+.canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  right: 0;
+  pointer-events: none;
+}
+
+.webgl-item {
+  width: 100%;
+  height: 100%;
+}
