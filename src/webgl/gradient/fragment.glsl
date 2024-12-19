@@ -122,9 +122,9 @@ void main() {
   vec2 coordinates = vUv - 0.5;
 
   vec3 flow = texture2D(tFlow, vUv).rgb; 
-
+  flow.xy = clamp(flow.xy, -1.0, 1.0);
   vec2 flowAdjustedUv = vUv + flow.xy * 0.02;
-
+  
   float noiseValX = noise(vec2(flowAdjustedUv.x * ( 5. * sin(uTime * 0.001)), flowAdjustedUv.y * ( 5. * cos(uTime * 0.001))));
   float noiseValY = noise(vec2(flowAdjustedUv.y * ( 5. * sin(uTime * 0.001)), flowAdjustedUv.x * ( 5. * cos(uTime * 0.001))));
 
