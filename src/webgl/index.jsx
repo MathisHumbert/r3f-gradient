@@ -5,15 +5,21 @@ import { useLenis } from 'lenis/react';
 
 import vertex from './gradient/vertex.glsl';
 import fragment from './gradient/fragment.glsl';
+import { Flowmap } from './Flowmap';
 
 function Gradient({ element, geometry }) {
   const mesh = useRef();
   const material = useRef();
   const bounds = useRef();
   const currentScroll = useRef();
-  let time = 0;
 
-  const { viewport, size } = useThree();
+  const mouse = new THREE.Vector2(-1, -1);
+  const velocity = new THREE.Vector2();
+
+  let lastTime = 0;
+  const lastMouse = new THREE.Vector2();
+
+  const { viewport, size, gl, scene } = useThree();
 
   const shaderArgs = {
     uniforms: {
@@ -23,10 +29,13 @@ function Gradient({ element, geometry }) {
       uColor1: { value: new THREE.Color('#F5B532') },
       uResolution: { value: new THREE.Vector2(size.width, size.height) },
       uRatio: { value: 16 / 9 },
+      tFlow: { value: null },
     },
     vertexShader: vertex,
     fragmentShader: fragment,
   };
+
+  const flowmap = new Flowmap(gl, scene, viewport);
 
   useLenis(({ scroll }) => {
     if (bounds.current !== undefined) {
@@ -37,12 +46,32 @@ function Gradient({ element, geometry }) {
   });
 
   useEffect(() => {
-    // element.addEventListener('mouseenter', onMouseEnter);
-    // element.addEventListener('mouseleave', onMouseLeave);
-    // window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', (e) => {
+      let x = e.clientX || (e.touches && e.touches[0].clientX);
+      let y = e.clientY || (e.touches && e.touches[0].clientY);
+
+      if (x === undefined) return;
+
+      const mouseX = x / window.innerWidth;
+      const mouseY = 1 - y / window.innerHeight;
+
+      const currentTime = performance.now();
+      const deltaTime = Math.max(14, currentTime - (lastTime || currentTime));
+
+      const deltaX = x - lastMouse.x;
+      const deltaY = y - lastMouse.y;
+
+      velocity.set(deltaX / deltaTime, deltaY / deltaTime);
+
+      lastMouse.set(x, y);
+      lastTime = currentTime;
+
+      mouse.set(mouseX, mouseY);
+    });
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react/prop-types
     const rect = element.getBoundingClientRect();
 
     bounds.current = {
@@ -52,18 +81,30 @@ function Gradient({ element, geometry }) {
       height: rect.height,
     };
 
+    const aspect = window.innerWidth / window.innerHeight;
+    flowmap.aspect = aspect;
+
     updateScale();
     updateX();
     updateY(currentScroll.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewport, size]);
 
   useFrame((state) => {
     if (mesh.current === undefined) return;
 
-    time++;
+    if (!velocity.length()) {
+      mouse.set(-1, -1);
+    }
 
-    // mesh.current.material.uniforms.uTime.value = state.clock.getElapsedTime();
-    mesh.current.material.uniforms.uTime.value = time;
+    flowmap.mouse.copy(mouse);
+    flowmap.velocity.lerp(velocity, velocity.length() ? 0.5 : 0.1);
+
+    const flowTexture = flowmap.update();
+    shaderArgs.uniforms.tFlow.value = flowTexture;
+
+    mesh.current.material.uniforms.uTime.value =
+      state.clock.getElapsedTime() * 10;
   });
 
   const updateScale = () => {

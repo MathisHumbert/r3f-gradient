@@ -6,7 +6,7 @@ uniform vec3 uColor1;
 uniform vec3 uColor2;
 uniform vec3 uColor3;
 uniform vec2 uResolution;
-uniform sampler2D tFluid;
+uniform sampler2D tFlow;
 uniform float uMouseVel;
 uniform float uPixelSize;
 #define S(a,b,t) smoothstep(a,b,t)
@@ -119,52 +119,38 @@ mat2 Rot(float a)
 }
 
 void main() {
-	vec2 coordinates = vUv - 0.5;
+  vec2 coordinates = vUv - 0.5;
 
-	vec3 flow = texture2D(tFluid, vUv).rgb;
+  vec3 flow = texture2D(tFlow, vUv).rgb; 
 
-	float noiseValX = noise(vec2(vUv.x * ( 5. * sin(uTime * 0.001)), vUv.y * ( 5. * cos(uTime * 0.001))));
-	float noiseValY = noise(vec2(vUv.y * ( 5. * sin(uTime * 0.001)), vUv.x * ( 5. * cos(uTime * 0.001))));
-   
-	
-	float circleCenter = circle(vec2(vUv.x + (noiseValX - 0.5 ) * 0.25, vUv.y + (noiseValX- 0.5) * 0.25 ), .1, 2.);
-	float centerNoise = noise(vec2(uTime * 0.001 + vUv.x * (3. + 1. * sin(uTime * 0.001)), vUv.y * (3. + 1. * cos(uTime * 0.001))));
-	centerNoise = smoothstep(centerNoise, 0.2,  0.5);
-	float center = smoothstep(min(centerNoise + circleCenter, 1.) , 1., 0.3);
+  vec2 flowAdjustedUv = vUv + flow.xy * 0.02;
 
-    float ratio = uResolution.x / uResolution.y;
+  float noiseValX = noise(vec2(flowAdjustedUv.x * ( 5. * sin(uTime * 0.001)), flowAdjustedUv.y * ( 5. * cos(uTime * 0.001))));
+  float noiseValY = noise(vec2(flowAdjustedUv.y * ( 5. * sin(uTime * 0.001)), flowAdjustedUv.x * ( 5. * cos(uTime * 0.001))));
 
-	float noiseTime = uTime * 0.005;
-    vec2 tuv = vUv;
-    tuv -= .5;
+  float circleCenter = circle(vec2(flowAdjustedUv.x + (noiseValX - 0.5 ) * 0.25, flowAdjustedUv.y + (noiseValX- 0.5) * 0.25 ), .1, 2.);
+  float centerNoise = noise(vec2(uTime * 0.001 + flowAdjustedUv.x * (3. + 1. * sin(uTime * 0.001)), flowAdjustedUv.y * (3. + 1. * cos(uTime * 0.001))));
+  centerNoise = smoothstep(centerNoise, 0.2,  0.5);
+  float center = smoothstep(min(centerNoise + circleCenter, 1.) , 1., 0.3);
 
-    // rotate with Noise
-    float degree = noise(vec2(noiseTime*.1 - flow.b * 0.1, tuv.x*tuv.y + flow.b * 0.1));
+  float ratio = uResolution.x / uResolution.y;
+  float noiseTime = uTime * 0.005;
+  vec2 tuv = flowAdjustedUv;
+  tuv -= .5;
 
-    tuv.y *= 1./ratio;
-    tuv *= Rot(radians((degree-.5)*720.+180.));
-	tuv.y *= ratio;
+  float degree = noise(vec2(noiseTime*.1 - 0. * 0.1, tuv.x*tuv.y + 0. * 0.1));
 
-    
-    // Wave warp with sin
-    float frequency = 5.;
-    float amplitude = 5.;
-    float speed = noiseTime * 2.;
-    tuv.x += sin(tuv.y*frequency+speed)/amplitude;
-   	tuv.y += sin(tuv.x*frequency*1.5+speed)/(amplitude*.5);
-    
-    
-    // draw the image
-    vec3 layer1 = mix(uColor1, uColor3, clamp(S(-.3, .2, (tuv*Rot(radians(-5.))).x)  * (1. + clamp(flow.b,-1., 1.)) , 0., 1.));
-    
-    vec3 layer2 = mix(uColor2, uColor3, clamp(S(-.3, .2, (tuv*Rot(radians(-5.))).x)  * (1. + clamp(flow.b,-1., 1.)) , 0., 1.));
-    
-    vec3 finalComp = mix(layer1, layer2, S(.5, -.3, tuv.y  * (1. + clamp(flow.b,-1., 1.)) ));
-	
-    
-    vec3 col = finalComp;
+  tuv.y *= 1./ratio;
+  tuv *= Rot(radians((degree-.5)*720.+180.));
+  tuv.y *= ratio;
 
-	gl_FragColor.rgb = mix(col, vec3(0.), pow(circleCenter * 0., 1.5)) ;
-	gl_FragColor.a = 1.;
+  vec3 layer1 = mix(uColor1, uColor3, clamp(S(-.3, .2, (tuv*Rot(radians(-5.))).x)  * (1. + clamp(0.,-1., 1.)) , 0., 1.));
+  vec3 layer2 = mix(uColor2, uColor3, clamp(S(-.3, .2, (tuv*Rot(radians(-5.))).x)  * (1. + clamp(0.,-1., 1.)) , 0., 1.));
 
+  vec3 finalComp = mix(layer1, layer2, S(.5, -.3, tuv.y  * (1. + clamp(0.,-1., 1.)) ));
+
+  vec3 col = finalComp;
+
+  gl_FragColor.rgb = mix(col, vec3(0.), pow(circleCenter * 0., 1.5));
+  gl_FragColor.a = 1.;
 }
