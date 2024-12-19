@@ -19,6 +19,8 @@ function Gradient({ element, geometry }) {
   let lastTime = 0;
   const lastMouse = new THREE.Vector2();
 
+  let time = 0;
+
   const { viewport, size, gl, scene } = useThree();
 
   const shaderArgs = {
@@ -90,7 +92,7 @@ function Gradient({ element, geometry }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewport, size]);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (mesh.current === undefined) return;
 
     if (!velocity.length()) {
@@ -103,8 +105,9 @@ function Gradient({ element, geometry }) {
     const flowTexture = flowmap.update();
     shaderArgs.uniforms.tFlow.value = flowTexture;
 
-    mesh.current.material.uniforms.uTime.value =
-      state.clock.getElapsedTime() * 10;
+    time++;
+
+    mesh.current.material.uniforms.uTime.value = time;
   });
 
   const updateScale = () => {
