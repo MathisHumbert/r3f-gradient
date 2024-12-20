@@ -30,12 +30,12 @@
   border: 1px solid blue;
 }
 
-.canvas {
-  position: fixed;
+canvas {
+  position: absolute;
   top: 0;
   left: 0;
-  height: 100vh;
-  right: 0;
+  height: 100%;
+  width: 100%;
   pointer-events: none;
 }
 

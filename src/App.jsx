@@ -4,23 +4,20 @@ import { WebGL } from './webgl';
 function App() {
   return (
     <>
-      <div className='canvas'>
-        <WebGL />
-      </div>
       <div>
         <section className='head'>
-          <div className='webgl-item'></div>
+          <WebGL />
         </section>
         <section className='middle'>
           <h1>Infrared Gradient</h1>
         </section>
         <section className='small'>
           <div className='container'>
-            <div className='webgl-item'></div>
+            <WebGL />
           </div>
         </section>
         <section className='footer'>
-          <div className='webgl-item'></div>
+          <WebGL />
         </section>
       </div>
     </>

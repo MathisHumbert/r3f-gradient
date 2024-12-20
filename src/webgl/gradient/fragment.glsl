@@ -1,7 +1,6 @@
 precision highp float;
 
 uniform float uTime;
-uniform float uRatio;
 uniform vec3 uColor1;
 uniform vec3 uColor2;
 uniform vec3 uColor3;
@@ -123,18 +122,18 @@ void main() {
 
   vec3 flow = texture2D(tFlow, vUv).rgb; 
   flow.xy = clamp(flow.xy, -1.0, 1.0);
-  vec2 flowAdjustedUv = vUv + flow.xy * 0.02;
+  vec2 flowAdjustedUv = vUv + flow.xy * 0.05;
   
-  float noiseValX = noise(vec2(flowAdjustedUv.x * ( 5. * sin(uTime * 0.001)), flowAdjustedUv.y * ( 5. * cos(uTime * 0.001))));
-  float noiseValY = noise(vec2(flowAdjustedUv.y * ( 5. * sin(uTime * 0.001)), flowAdjustedUv.x * ( 5. * cos(uTime * 0.001))));
+  float noiseValX = noise(vec2(flowAdjustedUv.x * ( 5. * sin(uTime * 0.1)), flowAdjustedUv.y * ( 5. * cos(uTime * 0.1))));
+  float noiseValY = noise(vec2(flowAdjustedUv.y * ( 5. * sin(uTime * 0.1)), flowAdjustedUv.x * ( 5. * cos(uTime * 0.1))));
 
   float circleCenter = circle(vec2(flowAdjustedUv.x + (noiseValX - 0.5 ) * 0.25, flowAdjustedUv.y + (noiseValX- 0.5) * 0.25 ), .1, 2.);
-  float centerNoise = noise(vec2(uTime * 0.001 + flowAdjustedUv.x * (3. + 1. * sin(uTime * 0.001)), flowAdjustedUv.y * (3. + 1. * cos(uTime * 0.001))));
+  float centerNoise = noise(vec2(uTime * 0.1 + flowAdjustedUv.x * (3. + 1. * sin(uTime * 0.1)), flowAdjustedUv.y * (3. + 1. * cos(uTime * 0.1))));
   centerNoise = smoothstep(centerNoise, 0.2,  0.5);
   float center = smoothstep(min(centerNoise + circleCenter, 1.) , 1., 0.3);
 
   float ratio = uResolution.x / uResolution.y;
-  float noiseTime = uTime * 0.005;
+  float noiseTime = uTime * 0.75;
   vec2 tuv = flowAdjustedUv;
   tuv -= .5;
 
@@ -152,5 +151,6 @@ void main() {
   vec3 col = finalComp;
 
   gl_FragColor.rgb = mix(col, vec3(0.), pow(circleCenter * 0., 1.5));
+  // gl_FragColor.rgb = texture2D(tFlow, vUv).rgb;
   gl_FragColor.a = 1.;
 }

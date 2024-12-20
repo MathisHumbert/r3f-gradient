@@ -46,7 +46,7 @@ export class Flowmap {
                 void main() {
                     vec4 prevFlow = texture2D(uPrevTexture, vUv) * uDissipation;
 
-                    float stamp = smoothstep(0.2, 0.0, distance(vUv, uMouse));
+                    float stamp = smoothstep(0.125, 0.0, distance(vUv, uMouse));
 
                     vec3 newFlow = mix(prevFlow.rgb, vec3(uVelocity, 1.0), stamp);
 
@@ -67,6 +67,9 @@ export class Flowmap {
     renderer.setRenderTarget(this.currentRenderTarget);
     renderer.render(this.scene, this.camera);
     renderer.setRenderTarget(null);
+
+    this.outputMesh = new THREE.Mesh(geometry, this.material);
+    this.mainScene.add(this.outputMesh);
   }
 
   update() {
@@ -81,6 +84,9 @@ export class Flowmap {
       this.nextRenderTarget,
       this.currentRenderTarget,
     ];
+
+    this.outputMesh.material.map = this.currentRenderTarget.texture;
+    this.outputMesh.material.needsUpdate = true;
 
     return this.currentRenderTarget.texture;
   }
